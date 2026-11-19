@@ -2,13 +2,13 @@
 
 export class HUD {
   constructor() {
-    this.cash = 250000;
+    this.cash = 285000;
   }
 
   render(ctx, player, police, mission, city, canvasWidth, canvasHeight, traffic = null, policeManager = null) {
     ctx.save();
 
-    const drawPanel = (x, y, w, h, borderColor = '#334155', bgColor = 'rgba(15, 23, 42, 0.88)') => {
+    const drawPanel = (x, y, w, h, borderColor = '#334155', bgColor = 'rgba(15, 23, 42, 0.9)') => {
       ctx.fillStyle = bgColor;
       ctx.strokeStyle = borderColor;
       ctx.lineWidth = 2;
@@ -39,10 +39,23 @@ export class HUD {
     ctx.fillStyle = '#3b82f6';
     ctx.fillRect(90, 60, (Math.max(0, player.armor) / 100) * 135, 12);
 
+    // Speedometer Panel (if player in vehicle)
+    if (player.inVehicle) {
+      const speedKmH = Math.round(Math.abs(player.inVehicle.speed) * 16);
+      drawPanel(20, 105, 140, 50);
+      ctx.font = 'bold 10px system-ui, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'left';
+      ctx.fillText('SPEED (KM/H)', 32, 122);
+      ctx.font = 'bold 18px system-ui, sans-serif';
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText(`${speedKmH} KM/H`, 32, 145);
+    }
+
     // 2. Top Center Panel: 'SUNSHINE CITY' Wordmark (260 x 75)
     const topCenterW = 260;
     const topCenterX = canvasWidth / 2 - topCenterW / 2;
-    drawPanel(topCenterX, 20, topCenterW, 75, '#38bdf8', 'rgba(15, 23, 42, 0.88)');
+    drawPanel(topCenterX, 20, topCenterW, 75, '#38bdf8', 'rgba(15, 23, 42, 0.9)');
 
     ctx.font = 'bold 14px system-ui, sans-serif';
     ctx.fillStyle = '#f8fafc';
@@ -79,22 +92,22 @@ export class HUD {
       ctx.fillText('WANTED', topRightX + 20, 65);
     }
 
-    // 4. Bottom Center: Mission Objective Banner
+    // 4. Bottom Center: Mission Objective Banner ("MISSION: ...")
     const currentMission = mission.getCurrentMission();
     if (currentMission) {
-      const bannerW = 620;
+      const bannerW = 640;
       const bannerH = 65;
       const bannerX = canvasWidth / 2 - bannerW / 2;
       const bannerY = canvasHeight - 90;
 
-      drawPanel(bannerX, bannerY, bannerW, bannerH, '#38bdf8', 'rgba(15, 23, 42, 0.9)');
+      drawPanel(bannerX, bannerY, bannerW, bannerH, '#38bdf8', 'rgba(15, 23, 42, 0.92)');
 
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 6;
       ctx.fillStyle = '#f8fafc';
       ctx.font = 'bold 16px system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(currentMission.title, canvasWidth / 2, bannerY + 25);
+      ctx.fillText(currentMission.title.toUpperCase(), canvasWidth / 2, bannerY + 25);
 
       ctx.font = '13px system-ui, sans-serif';
       ctx.fillStyle = '#cbd5e1';

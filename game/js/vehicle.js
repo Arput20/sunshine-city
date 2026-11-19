@@ -1,20 +1,21 @@
 // vehicle.js - Polished vehicle physics and rendering for Sunshine City
 
 export class Vehicle {
-  constructor(x, y, color = '#ef4444', isBus = false) {
+  constructor(x, y, color = '#ef4444', isBus = false, isPlayerCar = false) {
     this.x = x;
     this.y = y;
     this.vx = 0;
     this.vy = 0;
     this.angle = 0;
     this.speed = 0;
-    this.maxSpeed = isBus ? 8 : 14;
+    this.maxSpeed = isBus ? 8 : (isPlayerCar ? 16 : 14);
     this.acceleration = 0.25;
     this.braking = 0.45;
     this.friction = 0.04;
     this.turnSpeed = 0.045;
-    this.width = isBus ? 64 : 46;
-    this.height = isBus ? 28 : 24;
+    this.isPlayerCar = isPlayerCar;
+    this.width = isBus ? 64 : (isPlayerCar ? 72 : 40);
+    this.height = isBus ? 28 : (isPlayerCar ? 32 : 20);
     this.color = color;
     this.isBus = isBus;
     this.health = 100;
@@ -65,35 +66,44 @@ export class Vehicle {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
 
+    // Headlight cones (subtle golden glow ahead)
+    ctx.fillStyle = 'rgba(254, 240, 138, 0.22)';
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2, -this.height / 2);
+    ctx.lineTo(this.width / 2 + 100, -this.height / 2 - 50);
+    ctx.lineTo(this.width / 2 + 100, this.height / 2 + 50);
+    ctx.lineTo(this.width / 2, this.height / 2);
+    ctx.fill();
+
     // Subtle drop shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.fillRect(-this.width / 2 + 4, -this.height / 2 + 4, this.width, this.height);
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillRect(-this.width / 2 + 6, -this.height / 2 + 6, this.width, this.height);
 
     // Two-tone rounded body
     ctx.fillStyle = this.color;
     ctx.beginPath();
-    ctx.roundRect(-this.width / 2, -this.height / 2, this.width, this.height, 6);
+    ctx.roundRect(-this.width / 2, -this.height / 2, this.width, this.height, 8);
     ctx.fill();
 
     // White racing stripe if enabled
     if (this.hasWhiteStripe) {
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-this.width / 2, -3, this.width, 6);
+      ctx.fillRect(-this.width / 2, -4, this.width, 8);
     }
 
     // Roof / Windshield
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(-6, -this.height / 2 + 3, this.isBus ? 30 : 18, this.height - 6);
+    ctx.fillRect(-8, -this.height / 2 + 4, this.isBus ? 34 : 24, this.height - 8);
 
     // Headlights
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillRect(this.width / 2 - 4, -this.height / 2 + 2, 4, 5);
-    ctx.fillRect(this.width / 2 - 4, this.height / 2 - 7, 4, 5);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(this.width / 2 - 6, -this.height / 2 + 3, 6, 6);
+    ctx.fillRect(this.width / 2 - 6, this.height / 2 - 9, 6, 6);
 
     // Taillights
     ctx.fillStyle = '#ef4444';
-    ctx.fillRect(-this.width / 2, -this.height / 2 + 2, 3, 5);
-    ctx.fillRect(-this.width / 2, this.height / 2 - 7, 3, 5);
+    ctx.fillRect(-this.width / 2, -this.height / 2 + 3, 4, 6);
+    ctx.fillRect(-this.width / 2, this.height / 2 - 9, 4, 6);
 
     ctx.restore();
   }

@@ -44,39 +44,72 @@ for (const shot of shots) {
 
   if (shot.shotMode === '1') {
     menu.active = false;
-    // Frame seafront: sandy beach strip, bay, palm trees, pier
-    player.x = 5500;
-    player.y = 2800;
+    // Frame seafront: sandy beach strip, bay, palm trees, pier, glass towers
+    player.x = 5450;
+    player.y = 2750;
     police.wantedLevel = 1;
+    peds.peds.push({ x: player.x - 60, y: player.y + 40, shirtColor: '#f43f5e', bobOffset: 0 });
+    peds.peds.push({ x: player.x - 80, y: player.y + 70, shirtColor: '#0ea5e9', bobOffset: 1 });
   } else if (shot.shotMode === '2') {
     menu.active = false;
+    // Chase staging: player car (teal, white stripe, ~2x traffic size) moving on boulevard
     player.x = 2600;
     player.y = 2200;
-    const stolenCar = new Vehicle(player.x, player.y, '#06b6d4');
+    const stolenCar = new Vehicle(player.x, player.y, '#06b6d4', false, true);
     stolenCar.isDriven = true;
     stolenCar.hasWhiteStripe = true;
+    stolenCar.speed = 12;
     player.inVehicle = stolenCar;
-    police.wantedLevel = 3;
-    // TWO police cars directly behind player car on the same road lane
+    police.wantedLevel = 4;
+
+    // TWO police cars chasing 40-80px directly behind player car in the same lane
     police.policeUnits = [
-      { x: player.x - 70, y: player.y, speed: 6, angle: 0 },
-      { x: player.x - 135, y: player.y, speed: 6, angle: 0 }
+      { x: player.x - 70, y: player.y, speed: 13, angle: 0 },
+      { x: player.x - 145, y: player.y, speed: 13.5, angle: 0 }
     ];
-    effects.addSmoke(player.x - 45, player.y - 12);
-    effects.addSmoke(player.x - 60, player.y + 12);
-    effects.addSmoke(player.x - 85, player.y);
+
+    // Tyre smoke & speed lines behind player
+    effects.addSmoke(player.x - 50, player.y - 14);
+    effects.addSmoke(player.x - 65, player.y + 14);
+    effects.addSmoke(player.x - 90, player.y);
+
+    // Speed lines / motion streaks
+    for (let i = 0; i < 14; i++) {
+      effects.particles.push({
+        x: player.x - 80 - Math.random() * 120,
+        y: player.y + (Math.random() - 0.5) * 60,
+        vx: -18 - Math.random() * 8,
+        vy: 0,
+        life: 15,
+        color: 'rgba(255, 255, 255, 0.45)'
+      });
+    }
+
+    // Traffic cars nearby in other lanes
+    traffic.cars.push(new Vehicle(player.x + 200, player.y - 80, '#f97316'));
+    traffic.cars.push(new Vehicle(player.x - 100, player.y + 120, '#eab308'));
+
+    // Pedestrians on sidewalk
+    peds.peds.push({ x: player.x + 40, y: player.y - 120, shirtColor: '#22c55e', bobOffset: 0 });
+    peds.peds.push({ x: player.x - 40, y: player.y + 130, shirtColor: '#ec4899', bobOffset: 2 });
+
   } else if (shot.shotMode === '3') {
     menu.active = false;
-    // Frame seafront combat
-    player.x = 5400;
-    player.y = 3100;
-    police.wantedLevel = 4;
+    // Frame seafront combat: muzzle flash, blood/particles, police unit
+    player.x = 5380;
+    player.y = 3080;
+    police.wantedLevel = 3;
     police.policeUnits = [
-      { x: player.x + 80, y: player.y - 30, speed: 5, angle: Math.PI }
+      { x: player.x + 90, y: player.y - 35, speed: 5, angle: Math.PI }
     ];
     combat.shoot(player.x, player.y, 0);
-    effects.addSpark(player.x + 30, player.y + 10, '#ef4444');
-    effects.addSpark(player.x + 40, player.y - 10, '#fbbf24');
+    combat.shoot(player.x + 15, player.y - 5, 0.1);
+
+    // Muzzle flash particle & blood / sparks
+    effects.addSpark(player.x + 25, player.y, '#fef08a'); // Muzzle flash
+    effects.addSpark(player.x + 45, player.y - 12, '#ef4444'); // Blood / impact
+    effects.addSpark(player.x + 55, player.y + 10, '#38bdf8'); // Spark
+
   } else if (shot.shotMode === '4') {
     menu.active = false;
   }
@@ -84,7 +117,7 @@ for (const shot of shots) {
   const camera = { x: player.x, y: player.y };
 
   if (shot.shotMode === '4') {
-    menu.render(ctx, width, height, true);
+    menu.render(ctx, width, height, false);
   } else {
     ctx.save();
     ctx.translate(width / 2 - camera.x, height / 2 - camera.y);

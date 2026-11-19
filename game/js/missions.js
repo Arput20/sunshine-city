@@ -3,9 +3,9 @@
 export class MissionManager {
   constructor() {
     this.missions = [
-      { title: "Mission 1: Beachside Meet", objective: "Go to the neon pier and meet Slick.", x: 1200, y: 1500, completed: false },
-      { title: "Mission 2: Boulevard Heist", objective: "Steal the red sports car and lose the cops.", x: 2500, y: 2200, completed: false },
-      { title: "Mission 3: Sunset Showdown", objective: "Eliminate rival syndicate boss at the marina.", x: 4000, y: 3500, completed: false }
+      { title: "MISSION 1: BEACHSIDE MEET", objective: "Go to the neon pier and meet Slick.", x: 1200, y: 1500, completed: false },
+      { title: "MISSION 2: BOULEVARD HEIST", objective: "Steal the red sports car and lose the cops.", x: 2500, y: 2200, completed: false },
+      { title: "MISSION 3: SUNSET SHOWDOWN", objective: "Eliminate rival syndicate boss at the marina.", x: 4000, y: 3500, completed: false }
     ];
     this.currentMissionIndex = 0;
   }
@@ -32,7 +32,7 @@ export class MissionManager {
     if (!m || m.completed) return;
 
     // Pulsing mission marker (Yellow/Gold ring and star)
-    const pulse = 20 + Math.sin(Date.now() / 200) * 5;
+    const pulse = 22 + Math.sin(Date.now() / 200) * 6;
     ctx.strokeStyle = '#facc15';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -41,7 +41,7 @@ export class MissionManager {
 
     ctx.fillStyle = '#facc15';
     ctx.beginPath();
-    ctx.arc(m.x, m.y, 8, 0, Math.PI * 2);
+    ctx.arc(m.x, m.y, 9, 0, Math.PI * 2);
     ctx.fill();
   }
 }
