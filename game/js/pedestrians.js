@@ -1,4 +1,4 @@
-// pedestrians.js - Walking crowds for Sunshine City
+// pedestrians.js - Polished crowds with two-tone figures and walking bob for Sunshine City
 
 export class PedestrianManager {
   constructor(city) {
@@ -8,15 +8,15 @@ export class PedestrianManager {
   }
 
   spawnPeds() {
-    const shirts = ['#f43f5e', '#0ea5e9', '#eab308', '#a855f7', '#22c55e'];
-    for (let i = 0; i < 40; i++) {
+    const shirts = ['#f43f5e', '#0ea5e9', '#eab308', '#a855f7', '#22c55e', '#fb923c'];
+    for (let i = 0; i < 50; i++) {
       this.peds.push({
-        x: 100 + Math.random() * (this.city.width - 200),
-        y: 100 + Math.random() * (this.city.height - 200),
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5,
+        x: 120 + Math.random() * (this.city.width - 240),
+        y: 120 + Math.random() * (this.city.height - 240),
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: (Math.random() - 0.5) * 1.2,
         shirtColor: shirts[Math.floor(Math.random() * shirts.length)],
-        radius: 6
+        bobOffset: Math.random() * Math.PI * 2
       });
     }
   }
@@ -26,9 +26,9 @@ export class PedestrianManager {
       p.x += p.vx;
       p.y += p.vy;
 
-      if (Math.random() < 0.03) {
-        p.vx = (Math.random() - 0.5) * 1.5;
-        p.vy = (Math.random() - 0.5) * 1.5;
+      if (Math.random() < 0.02) {
+        p.vx = (Math.random() - 0.5) * 1.2;
+        p.vy = (Math.random() - 0.5) * 1.2;
       }
 
       p.x = Math.max(100, Math.min(this.city.width - 100, p.x));
@@ -37,17 +37,26 @@ export class PedestrianManager {
   }
 
   render(ctx) {
+    const time = Date.now() / 150;
     for (const p of this.peds) {
+      const bob = Math.sin(time + p.bobOffset) * 2;
+
+      // Drop shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y + 4, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Shoulders / Shirt body
+      ctx.fillStyle = p.shirtColor;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y + bob, 5, 0, Math.PI * 2);
+      ctx.fill();
+
       // Head
       ctx.fillStyle = '#fed7aa';
       ctx.beginPath();
-      ctx.arc(p.x, p.y - 4, 3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Shirt / Body
-      ctx.fillStyle = p.shirtColor;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y + 2, 5, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y - 5 + bob, 3.5, 0, Math.PI * 2);
       ctx.fill();
     }
   }

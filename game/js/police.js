@@ -1,4 +1,4 @@
-// police.js - Wanted level and police chase mechanics for Sunshine City
+// police.js - Polished police pursuit units with alternating red/blue lightbars for Sunshine City
 
 export class PoliceManager {
   constructor(city) {
@@ -11,9 +11,10 @@ export class PoliceManager {
     if (this.wantedLevel > 0 && this.policeUnits.length === 0) {
       for (let i = 0; i < this.wantedLevel * 2; i++) {
         this.policeUnits.push({
-          x: playerX + (Math.random() - 0.5) * 800,
-          y: playerY + (Math.random() - 0.5) * 800,
-          speed: 4 + this.wantedLevel * 0.8
+          x: playerX + (Math.random() - 0.5) * 600,
+          y: playerY + (Math.random() - 0.5) * 600,
+          speed: 4.5 + this.wantedLevel * 0.9,
+          angle: 0
         });
       }
     }
@@ -22,7 +23,8 @@ export class PoliceManager {
       const dx = playerX - unit.x;
       const dy = playerY - unit.y;
       const dist = Math.hypot(dx, dy);
-      if (dist > 10) {
+      if (dist > 15) {
+        unit.angle = Math.atan2(dy, dx);
         unit.x += (dx / dist) * unit.speed;
         unit.y += (dy / dist) * unit.speed;
       }
@@ -33,17 +35,24 @@ export class PoliceManager {
     for (const unit of this.policeUnits) {
       ctx.save();
       ctx.translate(unit.x, unit.y);
+      ctx.rotate(unit.angle);
 
-      // Police Car Body (Black & White with flashing lights)
+      // Police Car Body (White and Black two-tone)
+      ctx.fillStyle = '#f8fafc';
+      ctx.beginPath();
+      ctx.roundRect(-22, -13, 44, 26, 6);
+      ctx.fill();
+
+      // Black Police Center Roof / Trim
       ctx.fillStyle = '#0f172a';
-      ctx.fillRect(-20, -12, 40, 24);
+      ctx.fillRect(-6, -11, 14, 22);
 
-      // Flashing siren lights (Red / Blue)
+      // Alternating Red / Blue Siren Lightbar on Roof
       const flash = Math.floor(Date.now() / 150) % 2 === 0;
       ctx.fillStyle = flash ? '#ef4444' : '#3b82f6';
-      ctx.beginPath();
-      ctx.arc(0, 0, 6, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillRect(-4, -8, 8, 5);
+      ctx.fillStyle = flash ? '#3b82f6' : '#ef4444';
+      ctx.fillRect(-4, 3, 8, 5);
 
       ctx.restore();
     }

@@ -88,7 +88,7 @@ if (shotMode === '1') {
   menu.active = false;
   player.x = 1200;
   player.y = 1500;
-  police.wantedLevel = 0;
+  police.wantedLevel = 1;
 } else if (shotMode === '2') {
   menu.active = false;
   player.x = 2500;
@@ -97,15 +97,26 @@ if (shotMode === '1') {
   stolenCar.isDriven = true;
   player.inVehicle = stolenCar;
   police.wantedLevel = 3;
+  police.policeUnits = [
+    { x: player.x - 70, y: player.y - 40, speed: 6, angle: 0 },
+    { x: player.x - 90, y: player.y + 40, speed: 6, angle: 0 }
+  ];
+  effects.addSmoke(player.x - 40, player.y);
+  effects.addSmoke(player.x - 50, player.y);
 } else if (shotMode === '3') {
   menu.active = false;
   player.x = 4000;
   player.y = 3500;
   police.wantedLevel = 4;
+  police.policeUnits = [
+    { x: player.x + 80, y: player.y - 30, speed: 5, angle: Math.PI }
+  ];
+  combat.shoot(player.x, player.y, 0);
   effects.addSpark(player.x + 30, player.y + 10, '#ef4444');
+  effects.addSpark(player.x + 40, player.y - 10, '#fbbf24');
 } else if (shotMode === '4') {
   menu.active = false;
-  // Shot 4: Mission complete / garage view
+  // Shot 4: Story / menu / progression view
 }
 
 let camera = { x: player.x, y: player.y };
@@ -158,7 +169,10 @@ function render() {
 
   ctx.restore();
 
-  hud.render(ctx, player, police, mission, city, canvas.width, canvas.height);
+  // Warm sun lighting overlay
+  effects.renderSunTint(ctx, canvas.width, canvas.height);
+
+  hud.render(ctx, player, police, mission, city, canvas.width, canvas.height, traffic, police);
 }
 
 function loop() {
