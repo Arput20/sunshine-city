@@ -1,4 +1,4 @@
-// city.js - Procedural coastal city grid for Sunshine City with GTA6 visual polish
+// city.js - Procedural coastal city grid for Sunshine City with seafront, pier, 3D buildings, and palm trees
 
 export class City {
   constructor(width = 6000, height = 6000) {
@@ -30,11 +30,11 @@ export class City {
         this.blocks.push({ x, y, w, h, isBeach, isPark });
 
         if (isBeach) {
-          // Palm trees along beach boulevard
-          for (let i = 0; i < 5; i++) {
+          // Palm trees along beach promenade (5-6 trees)
+          for (let i = 0; i < 6; i++) {
             this.palmTrees.push({
-              x: x + 15 + Math.random() * (w - 30),
-              y: y + i * (h / 5) + Math.random() * 20
+              x: x + 18 + Math.random() * (w - 36),
+              y: y + i * (h / 6) + Math.random() * 20
             });
           }
         } else if (isPark) {
@@ -94,27 +94,24 @@ export class City {
     ctx.lineWidth = 3;
     ctx.setLineDash([20, 20]);
     
-    // Vertical road centerlines
     for (let x = this.roadWidth / 2; x < this.width; x += this.blockSize) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, this.height);
       ctx.stroke();
     }
-    // Horizontal road centerlines
     for (let y = this.roadWidth / 2; y < this.height; y += this.blockSize) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(this.width, y);
       ctx.stroke();
     }
-    ctx.setLineDash([]); // Reset line dash
+    ctx.setLineDash([]);
 
     // White crosswalks at intersections
     ctx.fillStyle = '#ffffff';
     for (let x = this.roadWidth / 2; x < this.width; x += this.blockSize) {
       for (let y = this.roadWidth / 2; y < this.height; y += this.blockSize) {
-        // Draw crosswalk stripes around block corners
         const bx = x - this.roadWidth / 2;
         const by = y - this.roadWidth / 2;
         ctx.fillRect(bx - 4, by - 12, 8, 12);
@@ -122,33 +119,47 @@ export class City {
       }
     }
 
-    // Blocks, Parks, Beach & Bay
+    // Blocks, Parks, Beach, Bay & Pier
     for (const b of this.blocks) {
       if (b.isBeach) {
         // Sandy beach strip
-        ctx.fillStyle = '#fde047';
+        ctx.fillStyle = '#fef08a';
         ctx.fillRect(b.x - 20, b.y - 20, b.w + 40, b.h + 40);
         
         // Turquoise bay with wave lines
         ctx.fillStyle = '#06b6d4';
-        ctx.fillRect(b.x + b.w / 2, b.y - 20, b.w / 2 + 20, b.h + 40);
+        ctx.fillRect(b.x + b.w / 2, b.y - 20, b.w / 2 + 160, b.h + 40);
 
         ctx.strokeStyle = '#a5f3fc';
         ctx.lineWidth = 2;
-        for (let wy = b.y; wy < b.y + b.h; wy += 40) {
+        for (let wy = b.y; wy < b.y + b.h; wy += 35) {
           ctx.beginPath();
-          ctx.moveTo(b.x + b.w / 2 + 10, wy);
-          ctx.quadraticCurveTo(b.x + b.w / 2 + 30, wy + 10, b.x + b.w + 10, wy);
+          ctx.moveTo(b.x + b.w / 2 + 20, wy);
+          ctx.quadraticCurveTo(b.x + b.w / 2 + 50, wy + 12, b.x + b.w + 120, wy);
           ctx.stroke();
         }
+
+        // Pier (Wooden dock extending into the bay)
+        const pierY = b.y + b.h / 2 - 22;
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(b.x + b.w / 2, pierY + 4, 180, 36);
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(b.x + b.w / 2, pierY, 180, 30);
+        ctx.strokeStyle = '#451a03';
+        ctx.lineWidth = 2;
+        for (let px = b.x + b.w / 2 + 20; px < b.x + b.w / 2 + 180; px += 24) {
+          ctx.beginPath();
+          ctx.moveTo(px, pierY);
+          ctx.lineTo(px, pierY + 30);
+          ctx.stroke();
+        }
+
       } else if (b.isPark) {
-        // Lush layered green park
         ctx.fillStyle = '#14532d';
         ctx.fillRect(b.x, b.y, b.w, b.h);
         ctx.fillStyle = '#16a34a';
         ctx.fillRect(b.x + 10, b.y + 10, b.w - 20, b.h - 20);
 
-        // Stone park pathways
         ctx.strokeStyle = '#78716c';
         ctx.lineWidth = 8;
         ctx.beginPath();
@@ -158,7 +169,6 @@ export class City {
         ctx.lineTo(b.x + b.w / 2, b.y + b.h);
         ctx.stroke();
       } else {
-        // Sidewalk border around block
         ctx.fillStyle = '#475569';
         ctx.fillRect(b.x, b.y, b.w, b.h);
         ctx.strokeStyle = '#334155';
@@ -167,46 +177,57 @@ export class City {
       }
     }
 
-    // Buildings with 2-3 tone shading, drop shadows, and rooftop details
+    // Buildings with 3D block top face, varied window colours, drop shadows, and rooftop AC boxes
     for (const b of this.buildings) {
       // Building Drop Shadow
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
       ctx.fillRect(b.x + 8, b.y + 8, b.w, b.h);
 
       // Main Wall
       ctx.fillStyle = b.palette.wall;
       ctx.fillRect(b.x, b.y, b.w, b.h);
 
+      // Light top face (3px lighter tone) so they read as 3D blocks
+      ctx.fillStyle = b.palette.glass;
+      ctx.fillRect(b.x, b.y, b.w, 3);
+
       // Inner Roof Level 1
       ctx.fillStyle = b.palette.roof;
       ctx.fillRect(b.x + 8, b.y + 8, b.w - 16, b.h - 16);
 
-      // Inner Roof Level 2 (tiered height)
+      // Inner Roof Level 2
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(b.x + 16, b.y + 16, b.w - 32, b.h - 32);
 
-      // Rooftop details (AC units, water tanks, vents in lighter tone)
+      // Rooftop AC boxes and water tanks
       ctx.fillStyle = '#cbd5e1';
-      ctx.fillRect(b.x + 24, b.y + 24, 16, 12); // AC unit
+      ctx.fillRect(b.x + 24, b.y + 24, 18, 14); // AC box 1
+      ctx.fillRect(b.x + b.w - 42, b.y + 26, 14, 16); // AC box 2
       ctx.beginPath();
-      ctx.arc(b.x + b.w - 32, b.y + 32, 8, 0, Math.PI * 2); // Water tank
+      ctx.arc(b.x + b.w - 32, b.y + b.h - 32, 9, 0, Math.PI * 2);
+      ctx.fillStyle = '#94a3b8';
       ctx.fill();
 
-      // Neon accent / architectural lighting
+      // Neon accent
       ctx.strokeStyle = b.palette.neon;
       ctx.lineWidth = 3;
       ctx.strokeRect(b.x + 12, b.y + 12, b.w - 24, b.h - 24);
 
-      // Windows grid
-      ctx.fillStyle = b.palette.glass;
+      // Vary window colours slightly per building
+      const winVariation = (b.x * 3 + b.y * 7) % 3;
+      const winColors = [b.palette.glass, b.palette.neon, '#fef08a'];
+      ctx.fillStyle = winColors[winVariation];
+
       for (let wx = b.x + 22; wx < b.x + b.w - 18; wx += 24) {
         for (let wy = b.y + 22; wy < b.y + b.h - 18; wy += 28) {
-          ctx.fillRect(wx, wy, 10, 16);
+          if ((wx + wy) % 5 !== 0) {
+            ctx.fillRect(wx, wy, 10, 16);
+          }
         }
       }
     }
 
-    // Palm trees with fronds along boulevard and parks
+    // Palm trees with trunk + fronds along boulevard and parks
     for (const t of this.palmTrees) {
       // Trunk shadow
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
@@ -221,13 +242,13 @@ export class City {
       ctx.fill();
 
       // Fronds with dark rim
-      ctx.fillStyle = '#166534'; // Dark rim
+      ctx.fillStyle = '#166534';
       for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
         ctx.beginPath();
         ctx.ellipse(t.x + Math.cos(a) * 14, t.y + Math.sin(a) * 14, 16, 7, a, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.fillStyle = '#22c55e'; // Inner bright fronds
+      ctx.fillStyle = '#22c55e';
       for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
         ctx.beginPath();
         ctx.ellipse(t.x + Math.cos(a) * 10, t.y + Math.sin(a) * 10, 12, 5, a, 0, Math.PI * 2);

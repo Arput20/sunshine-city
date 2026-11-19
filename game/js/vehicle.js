@@ -19,6 +19,7 @@ export class Vehicle {
     this.isBus = isBus;
     this.health = 100;
     this.isDriven = false;
+    this.hasWhiteStripe = false;
   }
 
   update(keys, city) {
@@ -73,6 +74,12 @@ export class Vehicle {
     ctx.beginPath();
     ctx.roundRect(-this.width / 2, -this.height / 2, this.width, this.height, 6);
     ctx.fill();
+
+    // White racing stripe if enabled
+    if (this.hasWhiteStripe) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-this.width / 2, -3, this.width, 6);
+    }
 
     // Roof / Windshield
     ctx.fillStyle = '#1e293b';

@@ -1,4 +1,4 @@
-// police.js - Polished police pursuit units with alternating red/blue lightbars for Sunshine City
+// police.js - Polished police pursuit units with 25% larger scale, white body/black doors, and separated red/blue glow lightbars for Sunshine City
 
 export class PoliceManager {
   constructor(city) {
@@ -37,22 +37,40 @@ export class PoliceManager {
       ctx.translate(unit.x, unit.y);
       ctx.rotate(unit.angle);
 
-      // Police Car Body (White and Black two-tone)
+      // Each 25% larger scale
+      ctx.scale(1.25, 1.25);
+
+      // Police Car Body (White)
       ctx.fillStyle = '#f8fafc';
       ctx.beginPath();
       ctx.roundRect(-22, -13, 44, 26, 6);
       ctx.fill();
 
-      // Black Police Center Roof / Trim
+      // Black Doors / Center Trim
       ctx.fillStyle = '#0f172a';
-      ctx.fillRect(-6, -11, 14, 22);
+      ctx.fillRect(-8, -13, 16, 26);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(-6, -10, 12, 20);
 
-      // Alternating Red / Blue Siren Lightbar on Roof
+      // Lightbar: two clearly separated bright red and blue rounded rects with additive glow halo (alternate which is bright)
       const flash = Math.floor(Date.now() / 150) % 2 === 0;
-      ctx.fillStyle = flash ? '#ef4444' : '#3b82f6';
-      ctx.fillRect(-4, -8, 8, 5);
-      ctx.fillStyle = flash ? '#3b82f6' : '#ef4444';
-      ctx.fillRect(-4, 3, 8, 5);
+
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = flash ? '#ef4444' : '#3b82f6';
+
+      // Red light rect
+      ctx.fillStyle = flash ? '#ef4444' : '#93c5fd';
+      ctx.beginPath();
+      ctx.roundRect(-4, -10, 8, 4, 2);
+      ctx.fill();
+
+      // Blue light rect (clearly separated)
+      ctx.fillStyle = flash ? '#93c5fd' : '#3b82f6';
+      ctx.beginPath();
+      ctx.roundRect(-4, 6, 8, 4, 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
 
       ctx.restore();
     }

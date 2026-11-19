@@ -44,27 +44,32 @@ for (const shot of shots) {
 
   if (shot.shotMode === '1') {
     menu.active = false;
-    player.x = 1200;
-    player.y = 1500;
+    // Frame seafront: sandy beach strip, bay, palm trees, pier
+    player.x = 5500;
+    player.y = 2800;
     police.wantedLevel = 1;
   } else if (shot.shotMode === '2') {
     menu.active = false;
-    player.x = 2500;
+    player.x = 2600;
     player.y = 2200;
-    const stolenCar = new Vehicle(player.x, player.y, '#ef4444');
+    const stolenCar = new Vehicle(player.x, player.y, '#06b6d4');
     stolenCar.isDriven = true;
+    stolenCar.hasWhiteStripe = true;
     player.inVehicle = stolenCar;
     police.wantedLevel = 3;
+    // TWO police cars directly behind player car on the same road lane
     police.policeUnits = [
-      { x: player.x - 70, y: player.y - 40, speed: 6, angle: 0 },
-      { x: player.x - 90, y: player.y + 40, speed: 6, angle: 0 }
+      { x: player.x - 70, y: player.y, speed: 6, angle: 0 },
+      { x: player.x - 135, y: player.y, speed: 6, angle: 0 }
     ];
-    effects.addSmoke(player.x - 40, player.y);
-    effects.addSmoke(player.x - 50, player.y);
+    effects.addSmoke(player.x - 45, player.y - 12);
+    effects.addSmoke(player.x - 60, player.y + 12);
+    effects.addSmoke(player.x - 85, player.y);
   } else if (shot.shotMode === '3') {
     menu.active = false;
-    player.x = 4000;
-    player.y = 3500;
+    // Frame seafront combat
+    player.x = 5400;
+    player.y = 3100;
     police.wantedLevel = 4;
     police.policeUnits = [
       { x: player.x + 80, y: player.y - 30, speed: 5, angle: Math.PI }
