@@ -1,6 +1,6 @@
 [
-  { "name": "01-city.png", "query": "?shot=1" },
+  { "name": "01-hero.png", "query": "?shot=1" },
   { "name": "02-chase.png", "query": "?shot=2" },
-  { "name": "03-combat.png", "query": "?shot=3" },
-  { "name": "04-story.png", "query": "?shot=4" }
+  { "name": "03-night.png", "query": "?shot=3" },
+  { "name": "04-missions.png", "query": "?shot=4" }
 ]

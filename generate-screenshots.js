@@ -22,10 +22,10 @@ const canvas = createCanvas(width, height);
 const ctx = canvas.getContext('2d');
 
 const shots = [
-  { name: '01-city.png', shotMode: '1' },
+  { name: '01-hero.png', shotMode: '1' },
   { name: '02-chase.png', shotMode: '2' },
-  { name: '03-combat.png', shotMode: '3' },
-  { name: '04-story.png', shotMode: '4' }
+  { name: '03-night.png', shotMode: '3' },
+  { name: '04-missions.png', shotMode: '4' }
 ];
 
 for (const shot of shots) {
@@ -112,12 +112,15 @@ for (const shot of shots) {
 
   } else if (shot.shotMode === '4') {
     menu.active = false;
+    menu.showMissionList = true;
+    mission.uiOpen = true;
   }
 
   const camera = { x: player.x, y: player.y };
 
   if (shot.shotMode === '4') {
-    menu.render(ctx, width, height, false);
+    menu.render(ctx, width, height, mission);
+    mission.renderMissionListUI(ctx, width, height);
   } else {
     ctx.save();
     ctx.translate(width / 2 - camera.x, height / 2 - camera.y);

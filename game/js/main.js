@@ -1,4 +1,4 @@
-// main.js - Main game loop, camera smoothing, state, and shot setups for Sunshine City
+// main.js - Pass 2: Comprehensive game loop and event coordination for Sunshine City
 
 import { City } from './city.js';
 import { Player } from './player.js';
@@ -26,21 +26,50 @@ resize();
 const keys = {};
 window.addEventListener('keydown', (e) => {
   keys[e.code] = true;
+
+  if (e.code === 'F3') {
+    debugMode = !debugMode;
+    audio.playBlip();
+    e.preventDefault();
+    return;
+  }
+
   if (menu.active) {
     menu.active = false;
     audio.playBlip();
+    return;
   }
+
+  if (e.code === 'KeyM') {
+    menu.showMissionList = !menu.showMissionList;
+    audio.playBlip();
+    return;
+  }
+
+  if (e.code === 'Escape' || e.code === 'KeyP') {
+    menu.paused = !menu.paused;
+    audio.playBlip();
+    return;
+  }
+
+  if (e.code === 'KeyR' && menu.paused) {
+    window.location.reload();
+    return;
+  }
+
+  if (menu.paused || menu.showMissionList) return;
+
   if (e.code === 'KeyE') {
-    // Enter/Exit car logic
     if (player.inVehicle) {
       player.inVehicle.isDriven = false;
-      player.x = player.inVehicle.x + 40;
+      player.x = player.inVehicle.x + 45;
       player.y = player.inVehicle.y;
       player.inVehicle = null;
+      audio.playBlip();
     } else {
-      // Find nearest car
-      for (const car of traffic.cars) {
-        if (Math.hypot(player.x - car.x, player.y - car.y) < 50) {
+      for (let i = 0; i < traffic.cars.length; i++) {
+        const car = traffic.cars[i];
+        if (Math.hypot(player.x - car.x, player.y - car.y) < 55) {
           player.inVehicle = car;
           car.isDriven = true;
           audio.playBlip();
@@ -61,10 +90,12 @@ window.addEventListener('mousedown', (e) => {
     audio.playBlip();
     return;
   }
+  if (menu.paused || menu.showMissionList) return;
+
   if (!player.inVehicle) {
     combat.shoot(player.x, player.y, player.angle);
     audio.playGunshot();
-    effects.addSpark(player.x + Math.cos(player.angle) * 20, player.y + Math.sin(player.angle) * 20);
+    effects.addSpark(player.x + Math.cos(player.angle) * 22, player.y + Math.sin(player.angle) * 22);
   }
 });
 
@@ -93,66 +124,105 @@ if (shotMode === '1') {
   menu.active = false;
   player.x = 2500;
   player.y = 2200;
-  const stolenCar = new Vehicle(player.x, player.y, '#ef4444');
+  const stolenCar = new Vehicle(player.x, player.y, '#ef4444', false, true);
   stolenCar.isDriven = true;
   player.inVehicle = stolenCar;
   police.wantedLevel = 3;
-  police.policeUnits = [
-    { x: player.x - 70, y: player.y - 40, speed: 6, angle: 0 },
-    { x: player.x - 90, y: player.y + 40, speed: 6, angle: 0 }
-  ];
-  effects.addSmoke(player.x - 40, player.y);
-  effects.addSmoke(player.x - 50, player.y);
 } else if (shotMode === '3') {
   menu.active = false;
   player.x = 4000;
   player.y = 3500;
   police.wantedLevel = 4;
-  police.policeUnits = [
-    { x: player.x + 80, y: player.y - 30, speed: 5, angle: Math.PI }
-  ];
-  combat.shoot(player.x, player.y, 0);
-  effects.addSpark(player.x + 30, player.y + 10, '#ef4444');
-  effects.addSpark(player.x + 40, player.y - 10, '#fbbf24');
 } else if (shotMode === '4') {
   menu.active = false;
-  // Shot 4: Story / menu / progression view
+  menu.showMissionList = true;
+  mission.uiOpen = true;
 }
 
-let camera = { x: player.x, y: player.y };
+const camera = { x: player.x, y: player.y, shakeTimer: 0, shakeIntensity: 0 };
+let lastTime = performance.now();
+let debugMode = false;
+let fps = 60;
+let targetX = 0;
+let targetY = 0;
+let velX = 0;
+let velY = 0;
+let lookAheadX = 0;
+let lookAheadY = 0;
+let currentSpeed = 0;
+let isDriven = false;
+let shakeX = 0;
+let shakeY = 0;
 
-function update() {
-  if (menu.active) return;
+function triggerShake(intensity, duration) {
+  camera.shakeIntensity = intensity;
+  camera.shakeTimer = duration;
+}
 
-  player.update(keys, city);
+function update(dt) {
+  if (menu.active || menu.paused || menu.showMissionList) return;
+
+  city.update(dt);
+  player.update(keys, city, effects);
   traffic.update();
   peds.update();
-  police.update(player.x, player.y);
-  combat.update();
+  police.update(dt, player.x, player.y, player.inVehicle ? player.inVehicle.vx : 0, player.inVehicle ? player.inVehicle.vy : 0);
+  combat.update(police, traffic, peds, hud);
   effects.update();
 
-  mission.checkProgress(player.x, player.y);
+  mission.update(dt, player.x, player.y, hud);
 
-  // Smooth camera follow
-  camera.x += (player.x - camera.x) * 0.1;
-  camera.y += (player.y - camera.y) * 0.1;
+  // Check vehicle collisions for screen shake & thud
+  if (player.inVehicle && Math.abs(player.inVehicle.speed) > 3) {
+    for (let i = 0; i < traffic.cars.length; i++) {
+      const car = traffic.cars[i];
+      if (car !== player.inVehicle && Math.hypot(player.inVehicle.x - car.x, player.inVehicle.y - car.y) < 50) {
+        audio.playCollisionThud();
+        effects.addCollisionDebris(player.inVehicle.x, player.inVehicle.y);
+        triggerShake(7, 18);
+        player.inVehicle.speed *= -0.3;
+        break;
+      }
+    }
+  }
+
+  // Audio engine sound sync
+  currentSpeed = player.inVehicle ? player.inVehicle.speed : (player.speed || 0);
+  isDriven = player.inVehicle && player.inVehicle.isDriven;
+  audio.updateEngine(currentSpeed, isDriven);
+
+  // Smooth camera follow with velocity look-ahead
+  targetX = player.inVehicle ? player.inVehicle.x : player.x;
+  targetY = player.inVehicle ? player.inVehicle.y : player.y;
+  velX = player.inVehicle ? player.inVehicle.vx : 0;
+  velY = player.inVehicle ? player.inVehicle.vy : 0;
+
+  lookAheadX = targetX + velX * 18;
+  lookAheadY = targetY + velY * 18;
+
+  camera.x += (lookAheadX - camera.x) * 0.1;
+  camera.y += (lookAheadY - camera.y) * 0.1;
 }
 
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (menu.active && shotMode !== '4') {
-    menu.render(ctx, canvas.width, canvas.height);
-    return;
-  }
-
-  if (shotMode === '4') {
-    menu.render(ctx, canvas.width, canvas.height, true);
+  if (menu.active) {
+    menu.render(ctx, canvas.width, canvas.height, mission);
     return;
   }
 
   ctx.save();
-  ctx.translate(canvas.width / 2 - camera.x, canvas.height / 2 - camera.y);
+
+  shakeX = 0;
+  shakeY = 0;
+  if (camera.shakeTimer > 0) {
+    camera.shakeTimer--;
+    shakeX = (Math.random() - 0.5) * camera.shakeIntensity;
+    shakeY = (Math.random() - 0.5) * camera.shakeIntensity;
+  }
+
+  ctx.translate(canvas.width / 2 - camera.x + shakeX, canvas.height / 2 - camera.y + shakeY);
 
   city.render(ctx, camera);
   peds.render(ctx);
@@ -169,14 +239,36 @@ function render() {
 
   ctx.restore();
 
-  // Warm sun lighting overlay
   effects.renderSunTint(ctx, canvas.width, canvas.height);
-
   hud.render(ctx, player, police, mission, city, canvas.width, canvas.height, traffic, police);
+
+  if (debugMode) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.fillRect(15, 15, 210, 95);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(15, 15, 210, 95);
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '13px monospace';
+    ctx.fillText(`[F3] DEBUG MODE`, 28, 38);
+    ctx.fillText(`FPS: ${fps}`, 28, 58);
+    ctx.fillText(`Particles: ${effects.particles.length}`, 28, 78);
+    ctx.fillText(`Traffic Cars: ${traffic.cars.length}`, 28, 98);
+    ctx.restore();
+  }
+
+  if (menu.paused || menu.showMissionList) {
+    menu.render(ctx, canvas.width, canvas.height, mission);
+  }
 }
 
-function loop() {
-  update();
+function loop(timestamp) {
+  const dt = Math.min(0.1, (timestamp - lastTime) / 1000);
+  fps = Math.round(1 / dt);
+  lastTime = timestamp;
+
+  update(dt);
   render();
   requestAnimationFrame(loop);
 }

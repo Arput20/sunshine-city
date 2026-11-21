@@ -11,9 +11,9 @@ export class Player {
     this.inVehicle = null;
   }
 
-  update(keys, city) {
+  update(keys, city, effects) {
     if (this.inVehicle) {
-      this.inVehicle.update(keys, city);
+      this.inVehicle.update(keys, city, effects);
       this.x = this.inVehicle.x;
       this.y = this.inVehicle.y;
       this.angle = this.inVehicle.angle;
